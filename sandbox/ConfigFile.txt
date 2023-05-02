@@ -3,7 +3,6 @@ data_path: /home/lars/Downloads/Archivio/_part_i_1.csv
 method_selection: U
 #timestamp column
 data_column_index: 3
-#change_point_column
 range_list: -10 to 10
 name_list: stopped started
 #Right now distance can only be 1
