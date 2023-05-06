@@ -56,7 +56,6 @@ class ConfigParser:
     range_list: list
     name_list: list
     distance: int
-    dummy_col: int  # NOTE(debug)
 
     @classmethod
     def parse_config(cls, config_path: Path):
@@ -92,11 +91,11 @@ class ConfigParser:
                     raise Exception("Sorry, ConfigFile.txt has a wrong format")
 
             if len(range_list) < 1:
-                # Make it so that any change is a changepoint.
-                nothing
-            elif len(name_list) - len(range_list) < 1:
+                # TODO: Figure out is this should be a feature.
+                pass
+            elif len(name_list) != len(range_list):
                 i = 1
-                while len(name_list) - len(range_list) < 1:
+                while len(name_list) != len(range_list):
                     name_list.append(f"range{i}")
                     i += 1
 
@@ -107,7 +106,6 @@ class ConfigParser:
                 range_list=range_list,
                 name_list=name_list,
                 distance=distance,
-                dummy_col=0,
             )
 
 
@@ -134,8 +132,6 @@ class CsvParser:
 
 
 def parse_ts(ts: str):
-    # date = ts.split(' ')[0].split('/')
     time = ts.split(" ")[0].split(":")
 
-    # return Timestamp(int(date[0]), int(date[1]), int(date[2]), int(time[0]), int(time[1]), int(time[2]))
     return Timestamp(1970, 1, 1, int(time[0]), int(time[1]), int(time[2]))

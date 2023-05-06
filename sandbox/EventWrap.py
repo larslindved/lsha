@@ -6,7 +6,7 @@ from it.polimi.hri_learn.domain.sigfeatures import (
     Timestamp,
     SignalPoint,
 )
-from sandbox.EventHardcoded import event_func
+from sandbox.EventFunc import event_func
 
 
 def label_event(events: List[Event], signals: List[SampledSignal], t: Timestamp):
@@ -22,8 +22,11 @@ def label_event(events: List[Event], signals: List[SampledSignal], t: Timestamp)
     flag, event = event_func(curr, prev)
 
     while not flag:
-        curr = [signals.points[index_curr + 1].value]
-        prev = [signals.points[index_prev + 1].value]
-        flag, event = event_func(curr, prev)
+        index_prev = index_curr
+        index_curr += 1
 
+        curr = [signals.points[index_curr].value]
+        prev = [signals.points[index_prev].value]
+        flag, event = event_func(curr, prev)
+    print(f"DEBUG: cur val = {curr}, event = {event}")
     return event

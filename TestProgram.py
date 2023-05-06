@@ -13,7 +13,7 @@ from it.polimi.hri_learn.domain.sigfeatures import (
     Timestamp,
     SignalPoint,
 )
-from sandbox.EventHardcoded import event_func
+from sandbox.EventFunc import event_func
 from sandbox.ParserClass import ConfigParser, CsvParser
 from sandbox.ChgWrap import is_chg_pt
 from sandbox.EventWrap import label_event
