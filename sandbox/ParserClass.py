@@ -14,7 +14,12 @@ from it.polimi.hri_learn.domain.sigfeatures import (
 
 
 def not_input(input_line):
-    if input_line[0] == "#" or input_line[0] == " ":
+    try:
+        # TODO: make less cowboy.
+        blank = input_line.split()[0]
+        if input_line[0] == "#":
+            return True
+    except IndexError:
         return True
 
 
@@ -90,8 +95,8 @@ class ConfigParser:
                 else:
                     raise Exception("Sorry, ConfigFile.txt has a wrong format")
 
-            if len(range_list) < 1:
-                # TODO: Figure out is this should be a feature.
+            if len(range_list) < 1 and method_selection == "U":
+                # TODO: Make this a feature.
                 pass
             elif len(name_list) != len(range_list):
                 i = 1

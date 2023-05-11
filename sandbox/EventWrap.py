@@ -7,6 +7,7 @@ from it.polimi.hri_learn.domain.sigfeatures import (
     SignalPoint,
 )
 from sandbox.EventFunc import event_func
+# from sandbox.EventHardcoded import event_func
 
 
 def label_event(events: List[Event], signals: List[SampledSignal], t: Timestamp):
