@@ -130,7 +130,10 @@ class CsvParser:
                 try:
                     field = float(row[data_column_index].replace(",", "."))
                 except ValueError:
-                    field = None
+                    try:
+                        field = str(row[data_column_index].replace(",", "."))
+                    except ValueError:
+                        field = None
                 data_points.points.append(SignalPoint(ts, field))
 
         return data_points

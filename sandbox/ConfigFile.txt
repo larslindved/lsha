@@ -1,7 +1,10 @@
 ###Configuration file.
 
 ### Path to the data csv:
-data_path: /home/lars/Downloads/Archivio/_part_i_1.csv
+data_path: /home/lars/Downloads/Archivio/_part_i_a.csv
+
+### TODO: Selection of what to do with non unique timestamps
+# e.g. ignore, keep first ..
 
 ### Select: U for unordered or O for ordered:
 method_selection: U
@@ -10,16 +13,17 @@ method_selection: U
 #timestamp_column TODO
 
 ### Column index of the desired data in the csv (0 indexed)
-data_column_index: 3
+data_column_index: 5
 
 ### Ranges defining the intervals of events. If empty and method_selection U, every change is an event.
 ### Ranges must be continius and cover the scope of the selectem data_column values.
 # Ranges are from and including
 #TODO implement check for ranges being continous
-range_list: -1 to 5 and 5 to 1000 and 1000 to 3000 and 3000 to 4000 
+range_list:
+#range_list: -1 to 5 and 5 to 1000 and 1000 to 3000 and 3000 to 4000 
 
 ### Naming the ranges in range_list. If emty default names are used.
 name_list: stopped slow medium fast 
 
-### For now distance can only be 1
+### For now distance can only be 1, TODO: Change. could be read between different columns.
 distance: 1
