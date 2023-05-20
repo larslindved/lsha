@@ -19,8 +19,6 @@ INDENT = "    "
 
 
 def unordered_wo_ranges():
-
-
     def wo_range():
         return_str = (
             INDENT
@@ -38,7 +36,7 @@ def unordered_wo_ranges():
         file.write(INDENT + "prev_data = prev[0]\n")
         file.write(wo_range())
         file.write(INDENT + "return False, 'No event'")
-        
+
 
 def unordered():
     def first_range():
@@ -87,7 +85,7 @@ def unordered():
         file.write(INDENT + "cur_data = curr[0]\n")
         file.write(INDENT + "prev_data = prev[0]\n")
         file.write(first_range())
-        if(num_ranges>1):
+        if num_ranges > 1:
             for nr in range(1, num_ranges):
                 file.write(mid_ranges(nr))
         file.write(no_range())
@@ -100,7 +98,6 @@ def ordered():
             INDENT
             + "for i, r in enumerate(range_list):"
             + "\n"
-
             + INDENT * 2
             + "if not found_cur_range and r[0] < cur_data <= r[1]:"
             + "\n"
@@ -110,7 +107,6 @@ def ordered():
             + INDENT * 3
             + "cur_range = name_list[i]"
             + "\n"
-
             + INDENT * 2
             + "if not found_prev_range and r[0] < prev_data <= r[1]:"
             + "\n"
@@ -120,7 +116,6 @@ def ordered():
             + INDENT * 3
             + "prev_range = name_list[i]"
             + "\n"
-
             + INDENT * 2
             + "if found_cur_range and found_prev_range:"
             + "\n"
@@ -136,7 +131,6 @@ def ordered():
             + INDENT * 4
             + "break"
             + "\n"
-
             + INDENT
             + "return False, 'No event'"
             + "\n"
@@ -150,11 +144,12 @@ def ordered():
         file.write(INDENT + "cur_data = curr[0]\n")
         file.write(INDENT + "prev_data = prev[0]\n")
         file.write(INDENT + "found_cur_range = False\n")
-        file.write(INDENT + "found_prev_range = False\n")      
+        file.write(INDENT + "found_prev_range = False\n")
         file.write(range_check())
 
+
 if config_fields.method_selection == "U":
-    if(num_ranges > 1):
+    if num_ranges > 1:
         unordered()
     else:
         unordered_wo_ranges()

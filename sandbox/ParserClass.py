@@ -23,33 +23,8 @@ def not_input(input_line):
         return True
 
 
-def is_data_path(input_line):
-    if input_line.split()[0] == "data_path:":
-        return True
-
-
-def is_method_selection(input_line):
-    if input_line.split()[0] == "method_selection:":
-        return True
-
-
-def is_data_column_index(input_line):
-    if input_line.split()[0] == "data_column_index:":
-        return True
-
-
-def is_range_list(input_line):
-    if input_line.split()[0] == "range_list:":
-        return True
-
-
-def is_name_list(input_line):
-    if input_line.split()[0] == "name_list:":
-        return True
-
-
-def is_distance(input_line):
-    if input_line.split()[0] == "distance:":
+def is_this(input_line, line_name):
+    if input_line.split()[0] == line_name:
         return True
 
 
@@ -58,8 +33,9 @@ class ConfigParser:
     data_path: os.path
     method_selection: str
     data_column_index: int
-    range_list: list
-    name_list: list
+    timestamp_index: int
+    range_list: List
+    name_list: List
     distance: int
 
     @classmethod
@@ -68,37 +44,46 @@ class ConfigParser:
             for i, line in enumerate(conf):
                 if not_input(line):
                     continue
-                elif is_data_path(line):
+                elif is_this(line, "data_path:"):
                     data_path = line.split()[1]
                     continue
-                elif is_method_selection(line):
+                elif is_this(line, "method_selection:"):
                     method_selection = line.split()[1]
                     continue
-                elif is_data_column_index(line):
+                elif is_this(line, "data_column_index:"):
                     data_column_index = int(line.split()[1])
                     continue
-                elif is_range_list(line):
+                elif is_this(line, "timestamp_index:"):
+                    timestamp_index = int(line.split()[1])
+                elif is_this(line, "range_list:"):
                     range_list_temp = line.split()
                     del range_list_temp[::2]
                     range_list_temp = [float(i) for i in range_list_temp]
                     range_list = []
                     for i in range(0, len(range_list_temp), 2):
+                        if i > 0 and range_list_temp[i - 1] != range_list_temp[i]:
+                            raise ValueError(
+                                f"Ranges in range_list should be continuous, {range_list_temp[i-1]} and {range_list_temp[i]} are not."
+                            )
                         range_list.append([range_list_temp[i], range_list_temp[i + 1]])
                     continue
-                elif is_name_list(line):
+                elif is_this(line, "name_list:"):
                     name_list = line.split()
                     name_list.pop(0)
                     continue
-                elif is_distance(line):
+                elif is_this(line, "distance:"):
                     distance = int(line.split()[1])
                     continue
                 else:
-                    raise Exception("Sorry, ConfigFile.txt has a wrong format")
+                    raise Exception(
+                        f"Sorry, ConfigFile.txt has a wrong format: {line} is not known, did you remeber the colon sign?."
+                    )
 
-            if len(range_list) < 1 and method_selection == "U":
-                # TODO: Make this a feature.
-                pass
-            elif len(name_list) != len(range_list):
+            if len(range_list) < 1 and method_selection == "O":
+                raise ValueError(
+                    "It is not possible to use an empty range_list together with methrod_selection: O"
+                )
+            elif len(range_list) > 0 and len(name_list) != len(range_list):
                 i = 1
                 while len(name_list) != len(range_list):
                     name_list.append(f"range{i}")
@@ -108,6 +93,7 @@ class ConfigParser:
                 data_path=data_path,
                 method_selection=method_selection,
                 data_column_index=data_column_index,
+                timestamp_index=timestamp_index,
                 range_list=range_list,
                 name_list=name_list,
                 distance=distance,
@@ -117,7 +103,7 @@ class ConfigParser:
 @dataclass
 class CsvParser:
     @classmethod
-    def parse_csv(cls, csv_path: Path, data_column_index: int):
+    def parse_csv(cls, csv_path: Path, data_column_index: int, ts_col: int):
         data_points: SampledSignal = SampledSignal([], label="dp")
         with open(csv_path) as csv_file:
             reader = csv.reader(csv_file, delimiter=",")
@@ -125,7 +111,7 @@ class CsvParser:
             for i, row in enumerate(reader):
                 if i < 1:
                     continue
-                ts = parse_ts(row[2])
+                ts = parse_ts(row[ts_col])
 
                 try:
                     field = float(row[data_column_index].replace(",", "."))
@@ -141,5 +127,11 @@ class CsvParser:
 
 def parse_ts(ts: str):
     time = ts.split(" ")[0].split(":")
+    try:
+        return_var = Timestamp(1970, 1, 1, int(time[0]), int(time[1]), int(time[2]))
+    except IndexError:
+        raise IndexError(
+            f"Timestamp seems weird, HH:MM:SS was expected, but: {ts} was read."
+        )
 
-    return Timestamp(1970, 1, 1, int(time[0]), int(time[1]), int(time[2]))
+    return return_var

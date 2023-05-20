@@ -43,7 +43,9 @@ if not args.config_file_path.exists():
 config_fields = ConfigParser.parse_config(args.config_file_path)
 
 new_signals: List[SampledSignal] = CsvParser.parse_csv(
-    config_fields.data_path, config_fields.data_column_index
+    config_fields.data_path,
+    config_fields.data_column_index,
+    config_fields.timestamp_index,
 )
 
 chg_pts = _find_chg_pts([sig for sig in new_signals.points])
