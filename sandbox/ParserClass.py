@@ -2,7 +2,10 @@ import os
 from dataclasses import dataclass
 from pathlib import Path
 import csv
-from typing import List, Tuple
+from typing import List, Tuple, Optional
+import time
+import pandas as pd
+
 
 from it.polimi.hri_learn.domain.sigfeatures import (
     ChangePoint,
@@ -31,6 +34,7 @@ def is_this(input_line, line_name):
 @dataclass
 class ConfigParser:
     data_path: os.path
+    clean_input: str
     method_selection: str
     data_column_index: int
     timestamp_index: int
@@ -45,16 +49,28 @@ class ConfigParser:
                 if not_input(line):
                     continue
                 elif is_this(line, "data_path:"):
-                    data_path = line.split()[1]
-                    continue
+                    data_path = line.split()[1]                        
                 elif is_this(line, "method_selection:"):
                     method_selection = line.split()[1]
-                    continue
                 elif is_this(line, "data_column_index:"):
                     data_column_index = int(line.split()[1])
-                    continue
                 elif is_this(line, "timestamp_index:"):
                     timestamp_index = int(line.split()[1])
+                elif is_this(line, "clean_input:"):
+                    clean_input = line.split()[1]
+                    if clean_input == "T":
+                        df = pd.read_csv(data_path)
+                        now = str(int(time.time()))
+                        out_file = f"{now}.csv"
+                        df.drop_duplicates(
+                            subset=df.columns[timestamp_index-1],            # Which columns to consider 
+                            keep='first',           # Which duplicate record to keep
+                            inplace=True,          # Whether to drop in place
+                            ignore_index=False      # Whether to relabel the index
+                        )
+                        print(df.to_string())
+                        df.to_csv(out_file)
+                        data_path=os.path.normpath(out_file)
                 elif is_this(line, "range_list:"):
                     range_list_temp = line.split()
                     del range_list_temp[::2]
@@ -91,6 +107,7 @@ class ConfigParser:
 
             return cls(
                 data_path=data_path,
+                clean_input=clean_input,
                 method_selection=method_selection,
                 data_column_index=data_column_index,
                 timestamp_index=timestamp_index,
