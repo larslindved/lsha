@@ -2,8 +2,11 @@ import configparser
 import os
 from typing import List
 
-from it.polimi.hri_learn.case_studies.energy_sim.sul_functions import label_event, parse_data, get_power_param, \
-    is_chg_pt
+from it.polimi.hri_learn.case_studies.energy_sim.sul_functions import parse_data, get_power_param
+    
+from sandbox.EventWrap import label_event
+from sandbox.ChgWrap import is_chg_pt
+
 from it.polimi.hri_learn.domain.lshafeatures import Event, NormalDistribution, Trace
 from it.polimi.hri_learn.domain.sigfeatures import Timestamp, SampledSignal
 from it.polimi.hri_learn.domain.sulfeatures import SystemUnderLearning, RealValuedVar, FlowCondition
