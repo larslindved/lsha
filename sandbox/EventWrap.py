@@ -6,19 +6,24 @@ from it.polimi.hri_learn.domain.sigfeatures import (
     Timestamp,
     SignalPoint,
 )
-from sandbox.EventFunc import event_func
-# from sandbox.EventHardcoded import event_func
-
+from sandbox.EventFunc import event_func, get_name_list
 
 def label_event(events: List[Event], signals: List[SampledSignal], t: Timestamp):
-    for i, pt in enumerate(signals.points):
+    # speed_sig = signals[1]
+    # pressure_sig = signals[2]
+    # speed = {pt.timestamp: (i, pt.value) for i, pt in enumerate(speed_sig.points)}
+    # pressure = {pt.timestamp: (i, pt.value) for i, pt in enumerate(pressure_sig.points)}
+
+    # NOTE: signals[1] is hardcoded to speed right now.
+    signal = signals[1]
+    for i, pt in enumerate(signal.points):
         if pt.timestamp == t:
             index_curr = i
             break
     index_prev = index_curr - 1
 
-    curr = [signals.points[index_curr].value]
-    prev = [signals.points[index_prev].value]
+    curr = [signal.points[index_curr].value]
+    prev = [signal.points[index_prev].value]
 
     flag, event = event_func(curr, prev)
 
@@ -26,8 +31,8 @@ def label_event(events: List[Event], signals: List[SampledSignal], t: Timestamp)
         index_prev = index_curr
         index_curr += 1
 
-        curr = [signals.points[index_curr].value]
-        prev = [signals.points[index_prev].value]
+        curr = [signal.points[index_curr].value]
+        prev = [signal.points[index_prev].value]
         flag, event = event_func(curr, prev)
     print(f"DEBUG: cur val = {curr}, event = {event}")
-    return event
+    return events[get_name_list().index(event)]

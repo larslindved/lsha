@@ -20,7 +20,7 @@ LOGGER = Logger('SUL DATA HANDLER')
 
 
 def is_chg_pt(curr, prev):
-    return abs(curr[0] - prev[0]) > SPEED_RANGE or curr[1] != prev[1]
+    return abs(curr[0] - prev[0]) > SPEED_RANGE #or curr[1] != prev[1] # NOTE: For developing
 
 
 def label_event(events: List[Event], signals: List[SampledSignal], t: Timestamp):
