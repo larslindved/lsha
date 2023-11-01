@@ -6,51 +6,127 @@ import numpy as np
 from sandbox.ParserClass import ConfigParser
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--config_file_path", "-c", type=Path, required=True)
+parser.add_argument("--config_dir", "-c", type=Path, required=True, help="absolute path to directory with config file(s)")
 
 args = parser.parse_args()
-if not args.config_file_path.exists():
-    raise ValueError(f"{args.config_file_path} does not exist")
+if not args.config_dir.exists():
+    raise ValueError(f"{args.config_dir} does not exist")
 
-config_fields = ConfigParser.parse_config(args.config_file_path)
+config_files = [os.path.join(args.config_dir, conf_file) for conf_file in os.listdir(args.config_dir) if '~' not in conf_file]
+config_files.sort()
 
-num_ranges = len(config_fields.range_list)
-INDENT = "    "
+INDENT = 4 * " "
 
+if os.path.isfile("sandbox/EventFunc.py"):
+    os.remove("sandbox/EventFunc.py")
 
-def unordered_wo_ranges():
+def file_start(signal_index: int):
+    return_str = (
+        f"range_list = {config_fields.range_list}\n"
+        + f"name_list = {name_list}\n"
+        + "def event_func(curr, prev):\n"
+        # + INDENT + f"cur_data = curr[{signal_index}]\n"
+        # + INDENT + f"prev_data = prev[{signal_index}]\n"
+        + INDENT + "events_found = []\n"
+
+    )
+    return return_str
+
+# def update_names_list():
+#     return_str = (
+#         INDENT + f"name_list.append({config_fields.name_list})\n"
+
+#     )
+#     return return_str
+    
+def no_range():
+    return_str = (
+        INDENT
+        + "# cur_data is not in any range.\n"
+        + INDENT
+        + "else:\n"
+        + INDENT * 2
+        + 'raise Exception(f"current field with value: {cur_data} does not belong to any range")\n\n'
+    )
+    return return_str
+
+def file_end():
+    return_str = (
+        # no_range()
+        INDENT + "if len(events_found) == 0:\n"
+        + INDENT * 2 + "status_list = [False, ['No event']]\n"
+        + INDENT + "else:\n"
+        + INDENT * 2 + "status_list = [True, events_found]\n"
+        + INDENT + "return status_list\n\n"
+        + "def get_range_list():\n"
+        + INDENT + f"return range_list\n\n"
+        + "def get_name_list():\n"
+        + INDENT + f"return name_list"
+
+    )
+    return return_str
+
+def unordered_wo_ranges(first: bool, last:bool, signal_index: int):
+
     def wo_range():
         return_str = (
             INDENT
-            + "# cur_data is equal to prev_data.\n"
+            + "# curr[{signal_index}] not equal to prev[{signal_index}].\n"
             + INDENT
-            + f"if (cur_data != prev_data):\n"
+            + f"if (curr[{signal_index}] != prev[{signal_index}]):\n"
             + INDENT * 2
-            + f"return True, cur_data \n\n"
+            + f"events_found.append(curr[{signal_index}])\n\n"
+            + INDENT * 2
+            + f"if curr[{signal_index}] not in name_list:\n"
+            + INDENT * 3
+            + f"name_list.append(curr[{signal_index}])\n\n"
         )
         return return_str
 
-    with open("sandbox/EventFunc.py", "w") as file:
-        file.write("def event_func(curr, prev):\n")
-        file.write(INDENT + "cur_data = curr[0]\n")
-        file.write(INDENT + "prev_data = prev[0]\n")
+    with open("sandbox/EventFunc.py", "a") as file:
+        if first:
+            file.write(file_start(signal_index))
         file.write(wo_range())
-        file.write(INDENT + "return False, 'No event'")
+        if last:
+            file.write(file_end())
 
+def pick(first: bool, last: bool, signal_index: int):
+    def w_names_only():
+        return_str = (
+            INDENT
+            + "# curr[{signal_index}] not equal to prev[{signal_index}].\n"
+            + INDENT
+            + f"if (curr[{signal_index}] != prev[{signal_index}]):\n"
+            + INDENT * 2
+            + f"if curr[{signal_index}] in name_list:\n"
+            + INDENT * 3
+            + f"events_found.append(curr[{signal_index}])\n\n"
+            # + INDENT * 3
+            # + f"name_list.append(curr[{signal_index}])\n\n"
+        )
+        return return_str
 
-def unordered():
+    with open("sandbox/EventFunc.py", "a") as file:
+        if first:
+            file.write(file_start(signal_index))
+        file.write(w_names_only())
+        if last:
+            file.write(file_end())
+        
+
+def unordered(first: bool, last: bool, signal_index: int):
     def first_range():
         return_str = (
             INDENT
-            + "# cur_data is in range 0.\n"
+            + "# curr is in range 0.\n"
             + INDENT
-            + f"if ({config_fields.range_list[0][0]} <= cur_data <= {config_fields.range_list[0][1]}):\n"
+            + f"if ({config_fields.range_list[0][0]} <= curr[{signal_index}] <= {config_fields.range_list[0][1]}):\n"
             + INDENT * 2
             + "# prev was not in range 0.\n"
             + INDENT * 2
-            + f"if not ({config_fields.range_list[0][0]} <= prev_data <= {config_fields.range_list[0][1]}):\n"
+            + f"if not ({config_fields.range_list[0][0]} <= prev[{signal_index}] <= {config_fields.range_list[0][1]}):\n"
             + INDENT * 3
-            + f"return True, '{config_fields.name_list[0]}'\n\n"
+            + f"events_found.append('{config_fields.name_list[0]}')\n\n"
         )
         return return_str
 
@@ -59,44 +135,28 @@ def unordered():
             INDENT
             + f"# cur_data is in range {ri}.\n"
             + INDENT
-            + f"elif {config_fields.range_list[ri][0]} < cur_data <= {config_fields.range_list[ri][1]}:\n"
+            + f"elif {config_fields.range_list[ri][0]} < curr[{signal_index}] <= {config_fields.range_list[ri][1]}:\n"
             + INDENT * 2
             + f"# prev_data was not in range {ri}.\n"
             + INDENT * 2
-            + f"if not ({config_fields.range_list[ri][0]} < prev_data <= {config_fields.range_list[ri][1]}):\n"
+            + f"if not ({config_fields.range_list[ri][0]} < prev[{signal_index}] <= {config_fields.range_list[ri][1]}):\n"
             + INDENT * 3
-            + f"return True, '{config_fields.name_list[ri]}'\n\n"
+            + f"events_found.append('{config_fields.name_list[ri]}')\n\n"
         )
         return return_str
 
-    def no_range():
-        return_str = (
-            INDENT
-            + "# cur_data is not in any range.\n"
-            + INDENT
-            + "else:\n"
-            + INDENT * 2
-            + 'raise Exception(f"current field with value: {cur_data} does not belong to any range")\n\n'
-        )
-        return return_str
-
-    with open("sandbox/EventFunc.py", "w") as file:
-        file.write("def event_func(curr, prev):\n")
-        file.write(INDENT + "cur_data = curr[0]\n")
-        file.write(INDENT + "prev_data = prev[0]\n")
+    with open("sandbox/EventFunc.py", "a") as file:
+        if first:
+            file.write(file_start(signal_index))
         file.write(first_range())
         if num_ranges > 1:
             for nr in range(1, num_ranges):
                 file.write(mid_ranges(nr))
-        file.write(no_range())
-        file.write(INDENT + "return False, 'No event'\n\n")
-        file.write("def get_range_list():\n")
-        file.write(INDENT + f"return {config_fields.range_list}\n\n")
-        file.write("def get_name_list():\n")
-        file.write(INDENT + f"return {config_fields.name_list}")
+        if last:
+            file.write(file_end())
 
 
-def ordered():
+def ordered(first: bool, last:bool, signal_index: int):
     def range_check():
         return_str = (
             INDENT
@@ -141,22 +201,43 @@ def ordered():
         )
         return return_str
 
-    with open("sandbox/EventFunc.py", "w") as file:
-        file.write("def event_func(curr, prev):\n")
-        file.write(INDENT + f"range_list = {config_fields.range_list}\n")
-        file.write(INDENT + f"name_list = {config_fields.name_list}\n")
-        file.write(INDENT + "cur_data = curr[0]\n")
-        file.write(INDENT + "prev_data = prev[0]\n")
+    with open("sandbox/EventFunc.py", "a") as file:
+        if first:
+            file.write(file_start())
         file.write(INDENT + "found_cur_range = False\n")
         file.write(INDENT + "found_prev_range = False\n")
         file.write(range_check())
 
+name_list_list = []
+for i, config_file in enumerate(config_files):
+    config_fields = ConfigParser.parse_config(config_file)
+    name_list_list.append(config_fields.name_list)
 
-if config_fields.method_selection == "U":
-    if num_ranges > 1:
-        unordered()
+name_list = [item for sublist in name_list_list for item in sublist]
+
+for i, config_file in enumerate(config_files):
+    config_fields = ConfigParser.parse_config(config_file)
+    num_ranges = len(config_fields.range_list)
+    num_names = len(config_fields.name_list)
+
+    if i == 0:
+        first = True
     else:
-        unordered_wo_ranges()
+        first = False
+        
+    if i == len(config_files)-1:
+        last = True
+    else:
+        last = False
 
-elif config_fields.method_selection == "O":
-    ordered()
+    if config_fields.method_selection == "U":
+        if num_ranges > 1: # TODO: 1 or 0?
+            unordered(first, last, i)
+        else:
+            unordered_wo_ranges(first, last, i)
+
+    elif config_fields.method_selection == "P":
+
+        pick(first, last, i)
+    elif config_fields.method_selection == "O":
+        ordered()

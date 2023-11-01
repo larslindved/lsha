@@ -4,13 +4,8 @@ from typing import List
 
 from it.polimi.hri_learn.case_studies.energy_sim.sul_functions import parse_data, get_power_param
 from sandbox.EventWrap import label_event
-from sandbox.EventFunc import get_range_list # Note: Not pretty.
+from sandbox.EventFunc import get_range_list, get_name_list # Note: Not pretty.
 from sandbox.ChgWrap import is_chg_pt
-
-# from it.polimi.hri_learn.case_studies.energy_sim.sul_functions import label_event, parse_data, get_power_param, \
-#     is_chg_pt
-
-
 from it.polimi.hri_learn.domain.lshafeatures import Event, NormalDistribution, Trace
 from it.polimi.hri_learn.domain.sigfeatures import Timestamp, SampledSignal
 from it.polimi.hri_learn.domain.sulfeatures import SystemUnderLearning, RealValuedVar, FlowCondition
@@ -21,7 +16,6 @@ def pwr_model(interval: List[Timestamp], P_0):
     interval = [ts.to_secs() for ts in interval]
     AVG_PW = 1.0
     return [AVG_PW] * len(interval)
-
 
 # define flow conditions
 on_fc: FlowCondition = FlowCondition(0, pwr_model)
@@ -40,16 +34,6 @@ config.read('./resources/config/config.ini')
 config.sections()
 DRIVER_SIG = config['ENERGY CS']['DRIVER_SIG']
 ###########################
-# SPEED_RANGE = int(config['ENERGY CS']['SPEED_RANGE'])
-# MIN_SPEED = int(config['ENERGY CS']['MIN_SPEED'])
-# MAX_SPEED = int(config['ENERGY CS']['MAX_SPEED'])
-# for i in range(MIN_SPEED, MAX_SPEED, SPEED_RANGE):
-#     if i < MAX_SPEED - SPEED_RANGE:
-#         new_guard = '{}<=w<{}'.format(i, i + SPEED_RANGE)
-#     else:
-#         new_guard = '{}<=w'.format(i)
-#     events.append(Event(new_guard, 'start', 'm_{}'.format(len(events))))
-###########################
 for e in get_range_list():
     if e !=get_range_list()[-1]:
         new_guard = '{}<=w<{}'.format(e[0], e[1])
@@ -57,20 +41,19 @@ for e in get_range_list():
         new_guard = '{}<=w'.format(e[0])
     events.append(Event(new_guard, 'start', 'm_{}'.format(len(events))))
 ###########################
+# for n in get_name_list():
+#     events.append(Event('', 'pressure', f'p_{n}'))
 spindle_off = Event('', 'stop', 'i_0')
-
-events.append(spindle_off)
 
 events.append(Event('', 'load', 'l'))
 events.append(Event('', 'unload', 'u'))
+events.append(spindle_off)
 
-# DRIVER_SIG = ['w', 'pr'] # NOTE: For developing
 
 DEFAULT_M = 0
 DEFAULT_DISTR = 0
 
 args = {'name': 'energy', 'driver': DRIVER_SIG, 'default_m': DEFAULT_M, 'default_d': DEFAULT_DISTR}
-breakpoint()
 energy_sim_cs = SystemUnderLearning([power], events, parse_data, label_event, get_power_param, is_chg_pt, args=args)
 
 # test = False

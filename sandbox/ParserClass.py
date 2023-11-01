@@ -5,6 +5,7 @@ import csv
 from typing import List, Tuple, Optional
 import time
 import pandas as pd
+import numpy as np
 
 
 from it.polimi.hri_learn.domain.sigfeatures import (
@@ -73,16 +74,37 @@ class ConfigParser:
                         data_path=os.path.normpath(out_file)
                 elif is_this(line, "range_list:"):
                     range_list_temp = line.split()
-                    del range_list_temp[::2]
-                    range_list_temp = [float(i) for i in range_list_temp]
                     range_list = []
-                    for i in range(0, len(range_list_temp), 2):
-                        if i > 0 and range_list_temp[i - 1] != range_list_temp[i]:
+                    if not (not range_list_temp) or range_list_temp[1] != "for":
+                        del range_list_temp[::2]
+                        range_list_temp = [float(i) for i in range_list_temp]
+                        
+                        for i in range(0, len(range_list_temp), 2):
+                            if i > 0 and range_list_temp[i - 1] != range_list_temp[i]:
+                                raise ValueError(
+                                    f"Ranges in range_list should be continuous, {range_list_temp[i-1]} and {range_list_temp[i]} are not."
+                                )
+                            range_list.append([range_list_temp[i], range_list_temp[i + 1]])
+                        continue
+                    else:
+                        range_list_temp.pop(0)
+                        del range_list_temp[::2]
+                        if float(range_list_temp[0]) >= float(range_list_temp[1]):
                             raise ValueError(
-                                f"Ranges in range_list should be continuous, {range_list_temp[i-1]} and {range_list_temp[i]} are not."
+                                f"Min {range_list_temp[0]} cannot be larger than or equal to max {range_list_temp[1]} in range_list"
                             )
-                        range_list.append([range_list_temp[i], range_list_temp[i + 1]])
-                    continue
+                        if (float(range_list_temp[1]) - float(range_list_temp[0])) < float(range_list_temp[2]):
+                            raise ValueError(
+                                f"Stepsize {range_list_temp[2]} cannot be larger than or max - min {float(range_list_temp[1]) -float(range_list_temp[0])} in range_list"
+                            )
+                        for i in np.arange(float(range_list_temp[0]), float(range_list_temp[1]), float(range_list_temp[2])):
+                            lower = i
+                            if i + float(range_list_temp[2]) <= float(range_list_temp[1]):
+                                upper = i + float(range_list_temp[2])
+                            else:
+                                upper = float(range_list_temp[1])
+                            range_list.append([lower, upper])                      
+                    print("DEBUG: ", range_list)
                 elif is_this(line, "name_list:"):
                     name_list = line.split()
                     name_list.pop(0)
@@ -100,7 +122,7 @@ class ConfigParser:
                     "It is not possible to use an empty range_list together with methrod_selection: O"
                 )
             elif len(range_list) > 0 and len(name_list) != len(range_list):
-                i = 1
+                i = 0
                 while len(name_list) != len(range_list):
                     name_list.append(f"r_{i}")
                     i += 1

@@ -1,38 +1,44 @@
+range_list = [[0.0, 1000.0], [1000.0, 2000.0], [2000.0, 3000.0], [3000.0, 4000.0]]
+name_list = ['r_0', 'r_1', 'r_2', 'r_3', 'LOAD', 'UNLOAD']
 def event_func(curr, prev):
-    cur_data = curr[0]
-    prev_data = prev[0]
-    # cur_data is in range 0.
-    if (0.0 <= cur_data <= 1000.0):
+    events_found = []
+    # curr is in range 0.
+    if (0.0 <= curr[0] <= 1000.0):
         # prev was not in range 0.
-        if not (0.0 <= prev_data <= 1000.0):
-            return True, 'r_1'
+        if not (0.0 <= prev[0] <= 1000.0):
+            events_found.append('r_0')
 
     # cur_data is in range 1.
-    elif 1000.0 < cur_data <= 2000.0:
+    elif 1000.0 < curr[0] <= 2000.0:
         # prev_data was not in range 1.
-        if not (1000.0 < prev_data <= 2000.0):
-            return True, 'r_2'
+        if not (1000.0 < prev[0] <= 2000.0):
+            events_found.append('r_1')
 
     # cur_data is in range 2.
-    elif 2000.0 < cur_data <= 3000.0:
+    elif 2000.0 < curr[0] <= 3000.0:
         # prev_data was not in range 2.
-        if not (2000.0 < prev_data <= 3000.0):
-            return True, 'r_3'
+        if not (2000.0 < prev[0] <= 3000.0):
+            events_found.append('r_2')
 
     # cur_data is in range 3.
-    elif 3000.0 < cur_data <= 4000.0:
+    elif 3000.0 < curr[0] <= 4000.0:
         # prev_data was not in range 3.
-        if not (3000.0 < prev_data <= 4000.0):
-            return True, 'r_4'
+        if not (3000.0 < prev[0] <= 4000.0):
+            events_found.append('r_3')
 
-    # cur_data is not in any range.
+    # curr[{signal_index}] not equal to prev[{signal_index}].
+    if (curr[1] != prev[1]):
+        if curr[1] in name_list:
+            events_found.append(curr[1])
+
+    if len(events_found) == 0:
+        status_list = [False, ['No event']]
     else:
-        raise Exception(f"current field with value: {cur_data} does not belong to any range")
-
-    return False, 'No event'
+        status_list = [True, events_found]
+    return status_list
 
 def get_range_list():
-    return [[0.0, 1000.0], [1000.0, 2000.0], [2000.0, 3000.0], [3000.0, 4000.0]]
+    return range_list
 
 def get_name_list():
-    return ['r_1', 'r_2', 'r_3', 'r_4']
+    return name_list
