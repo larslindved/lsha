@@ -102,7 +102,7 @@ class ConfigParser:
             elif len(range_list) > 0 and len(name_list) != len(range_list):
                 i = 1
                 while len(name_list) != len(range_list):
-                    name_list.append(f"range{i}")
+                    name_list.append(f"r_{i}")
                     i += 1
 
             return cls(

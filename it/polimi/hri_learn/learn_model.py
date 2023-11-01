@@ -5,9 +5,9 @@ from datetime import datetime
 import it.polimi.hri_learn.pltr.lsha_report as report
 import it.polimi.hri_learn.pltr.sha_pltr as ha_pltr
 from it.polimi.hri_learn.case_studies.auto_twin.sul_definition import auto_twin_cs
-from it.polimi.hri_learn.case_studies.energy.sul_definition import energy_cs
+# from it.polimi.hri_learn.case_studies.energy.sul_definition import energy_cs
 from it.polimi.hri_learn.case_studies.energy_sim.sul_definition import energy_sim_cs
-from it.polimi.hri_learn.case_studies.energy_made.sul_definition import energy_made_cs
+# from it.polimi.hri_learn.case_studies.energy_made.sul_definition import energy_made_cs
 from it.polimi.hri_learn.case_studies.hri.sul_definition import hri_cs
 from it.polimi.hri_learn.case_studies.thermostat.sul_definition import thermostat_cs
 from it.polimi.hri_learn.domain.lshafeatures import Trace
@@ -15,7 +15,7 @@ from it.polimi.hri_learn.domain.obstable import ObsTable
 from it.polimi.hri_learn.domain.sulfeatures import SystemUnderLearning
 from it.polimi.hri_learn.lstar_sha.learner import Learner
 from it.polimi.hri_learn.lstar_sha.teacher import Teacher
-from it.polimi.hri_learn.pltr.energy_pltr import distr_hist
+# from it.polimi.hri_learn.pltr.energy_pltr import distr_hist
 
 # LEARNING PROCEDURE SETUP
 warnings.filterwarnings('ignore')
@@ -69,8 +69,8 @@ sha_source = graphviz_sha.source
 with open(HA_SAVE_PATH + SHA_NAME + '_source.txt', 'w') as f:
     f.write(sha_source)
 
-if config['DEFAULT']['PLOT_DISTR'] == 'True' and config['LSHA PARAMETERS']['HT_QUERY_TYPE'] == 'S':
-    distr_hist(TEACHER.hist, SHA_NAME)
+# if config['DEFAULT']['PLOT_DISTR'] == 'True' and config['LSHA PARAMETERS']['HT_QUERY_TYPE'] == 'S':
+#     distr_hist(TEACHER.hist, SHA_NAME)
 
 report.save_data(TEACHER.symbols, TEACHER.distributions, LEARNER.obs_table,
                  len(TEACHER.signals), datetime.now() - startTime, SHA_NAME)
